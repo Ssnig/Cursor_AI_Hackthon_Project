@@ -39,10 +39,11 @@ Backend/
 `createRescue` POSTs `rescue.created` to:
 
 ```text
-POST http://127.0.0.1:5678/webhook/foodloop-rescue-created
+POST https://kyawsanhtun.app.n8n.cloud/webhook/foodloop-rescue-created
 ```
 
-Workflow: **FoodLoop - Rescue Coordinator** (must be Active). Failures never roll back the rescue.
+Workflow: **FoodLoop - Rescue Coordinator** (must be Published). Failures never roll back the rescue.  
+Editor: https://kyawsanhtun.app.n8n.cloud/workflow/tmaRn25UogtLWYrW
 
 ### Frontend handoff
 
@@ -58,7 +59,7 @@ VITE_N8N_RESCUE_WEBHOOK_URL=/api/n8n/webhook/foodloop-rescue-created
 ```js
 proxy: {
   '/api/n8n': {
-    target: 'http://127.0.0.1:5678',
+    target: 'https://kyawsanhtun.app.n8n.cloud',
     changeOrigin: true,
     rewrite: (p) => p.replace(/^\/api\/n8n/, ''),
   },

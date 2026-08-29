@@ -62,31 +62,31 @@ npm run demo
 
 ---
 
-## n8n (already running)
+## n8n (cloud)
 
-Keep n8n up at **http://localhost:5678**.
+Primary instance: **https://kyawsanhtun.app.n8n.cloud**
 
 Required for rescue notifications:
 
-1. Workflow **FoodLoop - Rescue Coordinator** is **Active**
+1. Workflow **FoodLoop - Rescue Coordinator** is **Published/Active**
 2. Webhook path: `/webhook/foodloop-rescue-created`
-3. Full URL used by Backend:
+3. Full production URL used by Backend:
 
-   `http://127.0.0.1:5678/webhook/foodloop-rescue-created`
+   `https://kyawsanhtun.app.n8n.cloud/webhook/foodloop-rescue-created`
 
 Frontend proxies browser calls:
 
 - Vite path: `/api/n8n/webhook/foodloop-rescue-created`
-- Proxies to: `http://127.0.0.1:5678/webhook/foodloop-rescue-created`
+- Proxies to: `https://kyawsanhtun.app.n8n.cloud/webhook/foodloop-rescue-created`
 
 Config sources:
 
 | File | Purpose |
 |------|---------|
-| `.env` (repo root) | `N8N_RESCUE_WEBHOOK_URL`, `N8N_API_KEY` |
+| `.env` (repo root) | `N8N_RESCUE_WEBHOOK_URL`, optional local `N8N_API_KEY` |
 | `Frontend/.env` | `VITE_N8N_RESCUE_WEBHOOK_URL=/api/n8n/webhook/foodloop-rescue-created` |
 
-If n8n Executions UI shows `403 … maximum history allowed by your license`, shrink the date filter to **Today**. That does not block webhook POSTs.
+Workflow editor: https://kyawsanhtun.app.n8n.cloud/workflow/tmaRn25UogtLWYrW
 
 ---
 
@@ -95,8 +95,8 @@ If n8n Executions UI shows `403 … maximum history allowed by your license`, sh
 | Service | URL |
 |---------|-----|
 | Frontend (Vite) | http://localhost:5173 |
-| n8n | http://localhost:5678 |
-| Rescue webhook | http://127.0.0.1:5678/webhook/foodloop-rescue-created |
+| n8n (cloud) | https://kyawsanhtun.app.n8n.cloud |
+| Rescue webhook | https://kyawsanhtun.app.n8n.cloud/webhook/foodloop-rescue-created |
 
 ---
 

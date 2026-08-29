@@ -17,8 +17,9 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     proxy: {
+      // Cloud n8n FoodLoop - Rescue Coordinator webhook
       "/api/n8n": {
-        target: "http://127.0.0.1:5678",
+        target: "https://kyawsanhtun.app.n8n.cloud",
         changeOrigin: true,
         rewrite: (p) => p.replace(/^\/api\/n8n/, "")
       }

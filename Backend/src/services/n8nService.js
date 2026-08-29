@@ -4,7 +4,7 @@
  */
 
 const DEFAULT_WEBHOOK_URL =
-  'http://127.0.0.1:5678/webhook/foodloop-rescue-created';
+  'https://kyawsanhtun.app.n8n.cloud/webhook/foodloop-rescue-created';
 
 /** @type {{ lastStatus: 'idle'|'pending'|'ok'|'error'|'skipped', lastMessage: string|null, lastAt: string|null, lastRescueId: string|null }} */
 let notificationState = {

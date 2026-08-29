@@ -8,16 +8,20 @@ import {
   type ReactNode
 } from "react";
 import { registerFoodLoopTools } from "@backend/webmcp/index.js";
-import type { Recommendation, Recipient, RescuePlan, SurplusItem } from "@/types";
+import type { AuthUser, Business, Recommendation, Recipient, RescuePlan, SurplusItem } from "@/types";
 import {
   addSurplusItem,
   completeRescue,
   createRescue,
   demoNowForItem,
   findNearbyRecipients,
+  loadSession,
+  loginOwner,
+  logoutOwner,
   readSnapshot,
   recommendAction,
   resetStore,
+  signupOwner,
   subscribe,
   toUiRecipient,
   toUiRecommendation,
@@ -25,6 +29,10 @@ import {
 } from "@/lib/foodloop";
 
 interface FoodLoopContextValue {
+  user: AuthUser | null;
+  business: Business | null;
+  isAuthenticated: boolean;
+  authReady: boolean;
   items: SurplusItem[];
   plans: RescuePlan[];
   impact: ReturnType<typeof readSnapshot>["impact"];
@@ -35,6 +43,14 @@ interface FoodLoopContextValue {
   recipients: Recipient[];
   activePlan: RescuePlan | null;
   error: string | null;
+  login: (email: string, password: string) => void;
+  signup: (input: {
+    email: string;
+    password: string;
+    name: string;
+    restaurantName: string;
+  }) => void;
+  logout: () => void;
   selectItem: (id: string) => void;
   refreshRecommendation: () => void;
   refreshRecipients: () => void;
@@ -65,12 +81,24 @@ function categoryToBackend(category: string): string {
 
 export function FoodLoopProvider({ children }: { children: ReactNode }) {
   const [tick, setTick] = useState(0);
+  const [authReady, setAuthReady] = useState(false);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [business, setBusiness] = useState<Business | null>(null);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [recommendation, setRecommendation] = useState<Recommendation | null>(null);
   const [recipients, setRecipients] = useState<Recipient[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => subscribe(() => setTick((value) => value + 1)), []);
+
+  useEffect(() => {
+    const session = loadSession();
+    if (session) {
+      setUser(session.user);
+      setBusiness(session.business);
+    }
+    setAuthReady(true);
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -80,17 +108,19 @@ export function FoodLoopProvider({ children }: { children: ReactNode }) {
     return () => controller.abort();
   }, []);
 
-  const snapshot = useMemo(() => readSnapshot(), [tick]);
+  const snapshot = useMemo(
+    () => readSnapshot(business?.id ?? null),
+    [tick, business?.id]
+  );
 
   useEffect(() => {
     if (!selectedItemId && snapshot.items[0]) {
       setSelectedItemId(snapshot.items[0].id);
     } else if (
       selectedItemId &&
-      !snapshot.items.some((item) => item.id === selectedItemId) &&
-      snapshot.items[0]
+      !snapshot.items.some((item) => item.id === selectedItemId)
     ) {
-      setSelectedItemId(snapshot.items[0].id);
+      setSelectedItemId(snapshot.items[0]?.id ?? null);
     }
   }, [selectedItemId, snapshot.items]);
 
@@ -106,6 +136,44 @@ export function FoodLoopProvider({ children }: { children: ReactNode }) {
     ) ||
     snapshot.plans[snapshot.plans.length - 1] ||
     null;
+
+  const login = useCallback((email: string, password: string) => {
+    setError(null);
+    const result = loginOwner(email, password);
+    setUser(result.user);
+    setBusiness(result.business);
+    setSelectedItemId(null);
+    setRecommendation(null);
+    setRecipients([]);
+  }, []);
+
+  const signup = useCallback(
+    (input: {
+      email: string;
+      password: string;
+      name: string;
+      restaurantName: string;
+    }) => {
+      setError(null);
+      const result = signupOwner(input);
+      setUser(result.user);
+      setBusiness(result.business);
+      setSelectedItemId(null);
+      setRecommendation(null);
+      setRecipients([]);
+    },
+    []
+  );
+
+  const logout = useCallback(() => {
+    logoutOwner();
+    setUser(null);
+    setBusiness(null);
+    setSelectedItemId(null);
+    setRecommendation(null);
+    setRecipients([]);
+    setError(null);
+  }, []);
 
   const refreshRecommendation = useCallback(() => {
     if (!selectedItem) return;
@@ -162,6 +230,10 @@ export function FoodLoopProvider({ children }: { children: ReactNode }) {
       availableUntil: string;
       location: string;
     }) => {
+      if (!business) {
+        setError("You must be logged in to log surplus.");
+        return;
+      }
       setError(null);
       try {
         const created = addSurplusItem({
@@ -169,14 +241,15 @@ export function FoodLoopProvider({ children }: { children: ReactNode }) {
           category: categoryToBackend(input.category),
           quantity: input.quantity,
           availableUntil: input.availableUntil,
-          location: input.location
+          location: input.location || business.location || business.name,
+          businessId: business.id
         });
         setSelectedItemId(created.id);
       } catch (err) {
         setError(err instanceof Error ? err.message : String(err));
       }
     },
-    []
+    [business]
   );
 
   const selectRecipient = useCallback(
@@ -217,14 +290,31 @@ export function FoodLoopProvider({ children }: { children: ReactNode }) {
   }, [activePlan]);
 
   const resetDemo = useCallback(() => {
+    const sessionUser = user;
     resetStore();
     setRecommendation(null);
     setRecipients([]);
     setSelectedItemId(null);
     setError(null);
-  }, []);
+    // Re-bind business after store reset (seeded users/businesses restored).
+    if (sessionUser) {
+      try {
+        const restored = loadSession();
+        if (restored) {
+          setUser(restored.user);
+          setBusiness(restored.business);
+        }
+      } catch {
+        /* keep current session fields */
+      }
+    }
+  }, [user]);
 
   const value: FoodLoopContextValue = {
+    user,
+    business,
+    isAuthenticated: Boolean(user && business),
+    authReady,
     items: snapshot.items,
     plans: snapshot.plans,
     impact: snapshot.impact,
@@ -235,6 +325,9 @@ export function FoodLoopProvider({ children }: { children: ReactNode }) {
     recipients,
     activePlan,
     error,
+    login,
+    signup,
+    logout,
     selectItem: setSelectedItemId,
     refreshRecommendation,
     refreshRecipients,

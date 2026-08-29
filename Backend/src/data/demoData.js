@@ -10,6 +10,22 @@ export const business = {
   lng: -74.006,
 };
 
+/**
+ * Default restaurant owner for hackathon demos.
+ * Login: owner@abcbakery.com / demo1234
+ * @type {import('../services/authService.js').AuthUser[]}
+ */
+export const users = [
+  {
+    id: 'user-001',
+    email: 'owner@abcbakery.com',
+    password: 'demo1234',
+    name: 'Alex Owner',
+    businessId: business.id,
+    role: 'owner',
+  },
+];
+
 /** @type {import('../services/surplusService.js').SurplusItem[]} */
 export const surplusItems = [
   {
@@ -77,6 +93,8 @@ export const METRICS = {
 export function createInitialState() {
   return {
     business: { ...business },
+    businesses: [{ ...business }],
+    users: users.map((u) => ({ ...u })),
     surplusItems: surplusItems.map((item) => ({ ...item })),
     recipients: recipients.map((r) => ({
       ...r,
@@ -85,5 +103,7 @@ export function createInitialState() {
     rescuePlans: [],
     impactMetrics: { ...impactMetrics },
     nextRescueId: 1,
+    nextUserId: 2,
+    nextBusinessId: 2,
   };
 }

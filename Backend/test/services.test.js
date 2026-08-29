@@ -24,6 +24,12 @@ import {
   getModelContext,
   registerFoodLoopTools,
 } from '../src/webmcp/registerTools.js';
+import {
+  login,
+  signup,
+  DEMO_CREDENTIALS,
+} from '../src/services/authService.js';
+import { addSurplusItem } from '../src/services/surplusService.js';
 
 /** @type {typeof fetch | undefined} */
 let originalFetch;
@@ -60,6 +66,52 @@ describe('getSurplusItems', () => {
     assert.equal(items[0].availableUntil, '20:00');
     assert.equal(items[0].location, 'ABC Bakery');
     assert.equal(items[0].status, 'pending');
+  });
+
+  it('filters surplus by businessId', () => {
+    const abc = getSurplusItems({ businessId: 'biz-001' });
+    assert.equal(abc.length, 1);
+    assert.equal(getSurplusItems({ businessId: 'biz-999' }).length, 0);
+  });
+});
+
+describe('authService', () => {
+  it('logs in the seeded ABC Bakery owner', () => {
+    const { user, business } = login(
+      DEMO_CREDENTIALS.email,
+      DEMO_CREDENTIALS.password,
+    );
+    assert.equal(user.email, 'owner@abcbakery.com');
+    assert.equal(user.businessId, 'biz-001');
+    assert.equal(business.name, 'ABC Bakery');
+    assert.equal(user.password, undefined);
+  });
+
+  it('rejects bad credentials', () => {
+    assert.throws(() => login('owner@abcbakery.com', 'wrong'), /Invalid email/);
+  });
+
+  it('signs up a new restaurant owner and scopes surplus', () => {
+    const { user, business } = signup({
+      name: 'Sam Chef',
+      restaurantName: 'Sam Kitchen',
+      email: 'sam@kitchen.test',
+      password: 'secret12',
+    });
+    assert.equal(user.email, 'sam@kitchen.test');
+    assert.equal(business.name, 'Sam Kitchen');
+    assert.match(business.id, /^biz-/);
+
+    addSurplusItem({
+      name: 'Bagels',
+      quantity: 8,
+      availableUntil: '19:00',
+      location: business.location,
+      businessId: business.id,
+    });
+
+    assert.equal(getSurplusItems({ businessId: business.id }).length, 1);
+    assert.equal(getSurplusItems({ businessId: 'biz-001' }).length, 1);
   });
 });
 

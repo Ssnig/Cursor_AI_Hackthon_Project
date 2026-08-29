@@ -14,4 +14,11 @@ export {
   buildRescueCreatedPayload,
   resetN8nNotificationStatus,
 } from './n8nService.js';
+export {
+  login,
+  signup,
+  getUserById,
+  getBusinessById,
+  DEMO_CREDENTIALS,
+} from './authService.js';
 export { getState, subscribe, resetStore } from '../data/store.js';

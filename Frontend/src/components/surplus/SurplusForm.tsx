@@ -1,4 +1,4 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -7,12 +7,18 @@ import { useFoodLoop } from "@/context/FoodLoopContext";
 
 export default function SurplusForm() {
   const navigate = useNavigate();
-  const { submitSurplus } = useFoodLoop();
+  const { submitSurplus, business } = useFoodLoop();
   const [name, setName] = useState("Chicken Sandwiches");
   const [category, setCategory] = useState("Prepared food");
   const [quantity, setQuantity] = useState(20);
   const [availableUntil, setAvailableUntil] = useState("20:00");
-  const [location, setLocation] = useState("ABC Bakery");
+  const [location, setLocation] = useState(business?.location || business?.name || "ABC Bakery");
+
+  useEffect(() => {
+    if (business?.location || business?.name) {
+      setLocation(business.location || business.name);
+    }
+  }, [business?.id, business?.location, business?.name]);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

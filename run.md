@@ -20,7 +20,17 @@ What it does:
 2. Starts the Vite React app on port **5173**
 3. Skips n8n (assumes you already started it)
 
-Open: **http://localhost:5173**
+Open: **http://localhost:5173** — you will land on **Login**.
+
+### Demo login (default restaurant owner)
+
+| Field | Value |
+|-------|--------|
+| Email | `owner@abcbakery.com` |
+| Password | `demo1234` |
+| Restaurant | ABC Bakery |
+
+Or use **Create an account** on `/signup` for a new restaurant workspace.
 
 Stop: close the terminal window running Vite.
 
@@ -102,8 +112,8 @@ Workflow editor: https://kyawsanhtun.app.n8n.cloud/workflow/tmaRn25UogtLWYrW
 
 ## Demo click path
 
-1. Open http://localhost:5173
-2. **Surplus** — use seed Chicken Sandwiches or log a new item
+1. Open http://localhost:5173 → **Login** with `owner@abcbakery.com` / `demo1234`
+2. **Surplus** — use seed Chicken Sandwiches or log a new item for ABC Bakery
 3. **Matching** — expect donate **15** / discount **5**; pick Community Food Center
 4. **Rescue** — mark complete
 5. **Impact** — meals / kg / value update; n8n badge may show coordinator notified

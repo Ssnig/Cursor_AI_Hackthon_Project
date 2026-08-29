@@ -10,13 +10,13 @@ import { useFoodLoop } from "@/context/FoodLoopContext";
 const metricIcons = [Utensils, Scale, WalletCards];
 
 export default function Dashboard() {
-  const { items, impact, recommendation, selectedItem, error, n8n } = useFoodLoop();
+  const { items, impact, recommendation, selectedItem, error, n8n, business } = useFoodLoop();
   const activeItem = selectedItem || items[0];
 
   return (
     <div className="grid gap-8">
       <PageHeader
-        eyebrow="FoodLoop command center"
+        eyebrow={business?.name ? `${business.name} · owner workspace` : "FoodLoop command center"}
         title="Turn surplus into rescue plans before food expires."
         description="Live dashboard wired to the Backend decision engine, matching service, and rescue flow."
         action={

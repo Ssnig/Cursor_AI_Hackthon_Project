@@ -20,6 +20,22 @@ export interface SurplusItem {
   businessId?: string;
 }
 
+export interface AuthUser {
+  id: string;
+  email: string;
+  name: string;
+  businessId: string;
+  role: string;
+}
+
+export interface Business {
+  id: string;
+  name: string;
+  location: string;
+  lat?: number;
+  lng?: number;
+}
+
 export interface Recipient {
   id: string;
   name: string;

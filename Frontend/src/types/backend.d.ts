@@ -1,7 +1,10 @@
 /** Ambient types for Backend JS modules imported via @backend alias. */
 
 declare module "@backend/services/index.js" {
-  export function getSurplusItems(filter?: { status?: string }): SurplusItem[];
+  export function getSurplusItems(filter?: {
+    status?: string;
+    businessId?: string;
+  }): SurplusItem[];
   export function getSurplusItemById(id: string): SurplusItem;
   export function addSurplusItem(input: {
     name: string;
@@ -35,6 +38,40 @@ declare module "@backend/services/index.js" {
   export function getState(): FoodLoopState;
   export function subscribe(listener: (snapshot: FoodLoopState) => void): () => void;
   export function resetStore(): FoodLoopState;
+
+  export function login(
+    email: string,
+    password: string
+  ): { user: PublicUser; business: Business };
+  export function signup(input: {
+    email: string;
+    password: string;
+    name: string;
+    restaurantName: string;
+  }): { user: PublicUser; business: Business };
+  export function getUserById(id: string): PublicUser;
+  export function getBusinessById(businessId: string): Business;
+  export const DEMO_CREDENTIALS: {
+    email: string;
+    password: string;
+    restaurantName: string;
+  };
+
+  export interface PublicUser {
+    id: string;
+    email: string;
+    name: string;
+    businessId: string;
+    role: string;
+  }
+
+  export interface Business {
+    id: string;
+    name: string;
+    location: string;
+    lat?: number;
+    lng?: number;
+  }
 
   export interface SurplusItem {
     id: string;
@@ -90,12 +127,23 @@ declare module "@backend/services/index.js" {
 
   export interface N8nStatus {
     lastStatus: "idle" | "pending" | "ok" | "error" | "skipped";
-    lastMessage: string;
+    lastMessage: string | null;
+    lastAt?: string | null;
+    lastRescueId?: string | null;
     lastPayload?: unknown;
   }
 
   export interface FoodLoopState {
-    business: { id: string; name: string; location: string };
+    business: Business;
+    businesses: Business[];
+    users: Array<{
+      id: string;
+      email: string;
+      password: string;
+      name: string;
+      businessId: string;
+      role: string;
+    }>;
     surplusItems: SurplusItem[];
     recipients: Array<{
       id: string;

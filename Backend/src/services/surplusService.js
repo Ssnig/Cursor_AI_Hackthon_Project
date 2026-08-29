@@ -13,14 +13,17 @@ import { getState, updateState } from '../data/store.js';
  */
 
 /**
- * Return all surplus items (optional status filter).
- * @param {{ status?: string }} [filter]
+ * Return surplus items (optional status / businessId filters).
+ * @param {{ status?: string, businessId?: string }} [filter]
  * @returns {SurplusItem[]}
  */
 export function getSurplusItems(filter = {}) {
   const { surplusItems } = getState();
-  if (!filter.status) return surplusItems;
-  return surplusItems.filter((item) => item.status === filter.status);
+  return surplusItems.filter((item) => {
+    if (filter.status && item.status !== filter.status) return false;
+    if (filter.businessId && item.businessId !== filter.businessId) return false;
+    return true;
+  });
 }
 
 /**

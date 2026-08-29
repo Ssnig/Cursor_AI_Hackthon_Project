@@ -30,18 +30,36 @@ export default function Login() {
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4 py-10">
-      <Card className="w-full max-w-md border-none shadow-xl shadow-primary/10">
+      <div className="grid w-full max-w-4xl overflow-hidden rounded-[1.75rem] border border-border/70 bg-card shadow-[0_24px_60px_-28px_hsl(152_40%_20%/0.35)] md:grid-cols-[1.05fr_0.95fr]">
+        <div className="food-hero hidden flex-col justify-between p-8 text-white md:flex">
+          <div>
+            <p className="food-chip bg-white/15 text-white">Fresh rescue ops</p>
+            <h1 className="font-display mt-6 text-4xl font-semibold leading-tight">
+              Keep good food on plates — not in bins.
+            </h1>
+            <p className="mt-4 text-sm leading-6 text-white/85">
+              Inspired by grocery & meal-kit dashboards: clear status, green actions, kitchen-first
+              language.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <span className="food-chip">Donate</span>
+            <span className="food-chip">Discount</span>
+            <span className="food-chip">Rescue</span>
+          </div>
+        </div>
+      <Card className="border-none shadow-none">
         <CardHeader className="gap-4">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
               <Leaf className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-lg font-black tracking-tight">FoodLoop</p>
-              <p className="text-xs text-muted-foreground">Restaurant owner login</p>
+              <p className="font-display text-xl font-semibold tracking-tight">FoodLoop</p>
+              <p className="text-xs font-semibold text-muted-foreground">Restaurant owner login</p>
             </div>
           </div>
-          <CardTitle>Sign in to your restaurant</CardTitle>
+          <CardTitle>Sign in to your kitchen</CardTitle>
           <p className="text-sm text-muted-foreground">
             Demo account prefilled:{" "}
             <span className="font-semibold text-foreground">
@@ -90,6 +108,7 @@ export default function Login() {
           </p>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

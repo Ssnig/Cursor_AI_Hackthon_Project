@@ -11,9 +11,9 @@ export default function Surplus() {
   return (
     <div className="grid gap-8">
       <PageHeader
-        eyebrow="Surplus intake"
-        title="Capture food, quantity, location, and cutoff time."
-        description="Form writes into the shared Backend store used by Matching, Rescue, Impact, and WebMCP tools."
+        eyebrow="Surplus board"
+        title="What's leaving the kitchen today?"
+        description="Log prepared food, bakery, or produce before cutoff. Selected batches feed matching and rescue."
         action={
           <Button type="button" variant="outline" onClick={resetDemo}>
             Reset demo data

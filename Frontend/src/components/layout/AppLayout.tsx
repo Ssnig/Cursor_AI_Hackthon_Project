@@ -2,7 +2,6 @@ import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
   BarChart3,
   ClipboardList,
-  HandHeart,
   Home,
   Leaf,
   LogOut,
@@ -17,23 +16,23 @@ import { useFoodLoop } from "@/context/FoodLoopContext";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { to: "/dashboard", label: "Dashboard", icon: Home },
-  { to: "/surplus", label: "Surplus", icon: ClipboardList },
-  { to: "/matching", label: "Matching", icon: MapPinned },
-  { to: "/rescue", label: "Rescue", icon: PackageCheck },
-  { to: "/impact", label: "Impact", icon: BarChart3 }
+  { to: "/dashboard", label: "Kitchen hub", icon: Home },
+  { to: "/surplus", label: "Surplus board", icon: ClipboardList },
+  { to: "/matching", label: "Find partners", icon: MapPinned },
+  { to: "/rescue", label: "Rescue run", icon: PackageCheck },
+  { to: "/impact", label: "Impact plate", icon: BarChart3 }
 ];
 
 function Brand({ restaurantName }: { restaurantName?: string }) {
   return (
     <div className="flex items-center gap-3">
-      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/20">
+      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/25">
         <Leaf className="h-6 w-6" />
       </div>
       <div>
-        <p className="text-lg font-black tracking-tight">FoodLoop</p>
-        <p className="text-xs font-medium text-muted-foreground">
-          {restaurantName || "Surplus rescue dashboard"}
+        <p className="font-display text-xl font-semibold tracking-tight">FoodLoop</p>
+        <p className="text-xs font-semibold text-muted-foreground">
+          {restaurantName || "Fresh surplus rescue"}
         </p>
       </div>
     </div>
@@ -42,10 +41,9 @@ function Brand({ restaurantName }: { restaurantName?: string }) {
 
 function Navigation({ onNavigate }: { onNavigate?: () => void }) {
   return (
-    <nav className="grid gap-2" aria-label="FoodLoop navigation">
+    <nav className="grid gap-1.5" aria-label="FoodLoop navigation">
       {navItems.map((item) => {
         const Icon = item.icon;
-
         return (
           <NavLink
             key={item.to}
@@ -53,8 +51,8 @@ function Navigation({ onNavigate }: { onNavigate?: () => void }) {
             onClick={onNavigate}
             className={({ isActive }) =>
               cn(
-                "flex items-center gap-3 rounded-full px-4 py-3 text-sm font-semibold text-muted-foreground transition hover:bg-secondary hover:text-secondary-foreground",
-                isActive && "bg-secondary text-secondary-foreground"
+                "flex items-center gap-3 rounded-full px-4 py-3 text-sm font-bold text-muted-foreground transition hover:bg-secondary hover:text-secondary-foreground",
+                isActive && "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground"
               )
             }
           >
@@ -77,11 +75,9 @@ function OwnerCard() {
   }
 
   return (
-    <div className="mt-auto rounded-3xl border bg-secondary/60 p-4">
-      <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-background text-primary">
-        <HandHeart className="h-5 w-5" />
-      </div>
-      <p className="text-sm font-bold">{business?.name || "Your restaurant"}</p>
+    <div className="mt-auto rounded-[1.35rem] border border-primary/10 bg-gradient-to-br from-secondary to-white p-4">
+      <p className="food-chip mb-3">Kitchen open</p>
+      <p className="font-display text-lg font-semibold">{business?.name || "Your restaurant"}</p>
       <p className="mt-1 text-sm text-muted-foreground">
         {user?.name} · {user?.email}
       </p>
@@ -103,8 +99,8 @@ export default function AppLayout() {
   const { business } = useFoodLoop();
 
   return (
-    <div className="min-h-screen lg:grid lg:grid-cols-[280px_1fr]">
-      <aside className="sticky top-0 hidden h-screen border-r bg-card/75 p-6 backdrop-blur-xl lg:flex lg:flex-col">
+    <div className="min-h-screen lg:grid lg:grid-cols-[272px_1fr]">
+      <aside className="sticky top-0 hidden h-screen border-r border-border/70 bg-white/80 p-6 backdrop-blur-xl lg:flex lg:flex-col">
         <Brand restaurantName={business?.name} />
         <div className="mt-10">
           <Navigation />
@@ -113,7 +109,7 @@ export default function AppLayout() {
       </aside>
 
       <div className="flex min-h-screen flex-col">
-        <header className="sticky top-0 z-20 border-b bg-background/85 px-4 py-3 backdrop-blur lg:hidden">
+        <header className="sticky top-0 z-20 border-b border-border/70 bg-white/85 px-4 py-3 backdrop-blur lg:hidden">
           <div className="flex items-center justify-between">
             <Brand restaurantName={business?.name} />
             <Button
@@ -126,7 +122,7 @@ export default function AppLayout() {
             </Button>
           </div>
           {isMobileOpen ? (
-            <div className="mt-4 space-y-3 rounded-3xl border bg-card p-3 shadow-xl">
+            <div className="mt-4 space-y-3 rounded-[1.35rem] border bg-card p-3 shadow-xl">
               <Navigation onNavigate={() => setIsMobileOpen(false)} />
               <OwnerCard />
             </div>

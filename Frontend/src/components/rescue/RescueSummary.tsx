@@ -1,58 +1,8 @@
-import { CheckCircle2, Clock, MapPin, PackageCheck } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { Recipient, RescuePlan, SurplusItem } from "@/types";
+import { surplusItems, recipients } from "@/data/mockData";
 
-interface RescueSummaryProps {
-  plan: RescuePlan;
-  item: SurplusItem;
-  recipient: Recipient;
-}
-
-export default function RescueSummary({ plan, item, recipient }: RescueSummaryProps) {
-  return (
-    <Card>
-      <CardHeader className="flex-row items-start justify-between space-y-0">
-        <div>
-          <CardTitle>Confirmed rescue plan</CardTitle>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Pickup details are represented with local mock data for frontend demo flow.
-          </p>
-        </div>
-        <Badge variant="secondary">{plan.status}</Badge>
-      </CardHeader>
-      <CardContent className="grid gap-4">
-        <div className="grid gap-4 rounded-3xl bg-secondary/70 p-5 md:grid-cols-2">
-          <div className="flex items-start gap-3">
-            <PackageCheck className="mt-1 h-5 w-5 text-primary" />
-            <div>
-              <p className="font-semibold">{item.name}</p>
-              <p className="text-sm text-muted-foreground">{item.quantity} portions available</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <MapPin className="mt-1 h-5 w-5 text-primary" />
-            <div>
-              <p className="font-semibold">{recipient.name}</p>
-              <p className="text-sm text-muted-foreground">{recipient.address}</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <Clock className="mt-1 h-5 w-5 text-primary" />
-            <div>
-              <p className="font-semibold">Pickup at {plan.pickupTime}</p>
-              <p className="text-sm text-muted-foreground">{recipient.pickupWindow}</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <CheckCircle2 className="mt-1 h-5 w-5 text-primary" />
-            <div>
-              <p className="font-semibold">Driver note</p>
-              <p className="text-sm text-muted-foreground">{plan.driverNote}</p>
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
+export default function RescueSummary() {
+  const item = surplusItems[0];
+  const recipient = recipients[0];
+  return <Card><CardHeader><CardTitle>Rescue plan ready</CardTitle><p className="text-sm text-muted-foreground">Mock confirmation details for the human approval step.</p></CardHeader><CardContent className="grid gap-4 md:grid-cols-2"><div className="rounded-3xl bg-secondary p-5"><p className="text-sm text-muted-foreground">Surplus</p><p className="text-xl font-bold">{item.name}</p><p>{item.quantity} portions before {item.availableUntil}</p></div><div className="rounded-3xl bg-secondary p-5"><p className="text-sm text-muted-foreground">Recipient</p><p className="text-xl font-bold">{recipient.name}</p><p>Pickup window {recipient.pickupWindow}</p></div></CardContent></Card>;
 }

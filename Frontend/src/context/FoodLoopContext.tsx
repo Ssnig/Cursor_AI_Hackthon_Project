@@ -42,6 +42,8 @@ interface FoodLoopContextValue {
   recommendation: Recommendation | null;
   recipients: Recipient[];
   activePlan: RescuePlan | null;
+  hasPendingSurplus: boolean;
+  hasRescuePlans: boolean;
   error: string | null;
   login: (email: string, password: string) => void;
   signup: (input: {
@@ -310,6 +312,9 @@ export function FoodLoopProvider({ children }: { children: ReactNode }) {
     }
   }, [user]);
 
+  const hasPendingSurplus = snapshot.items.some((item) => item.status === "pending");
+  const hasRescuePlans = snapshot.plans.length > 0;
+
   const value: FoodLoopContextValue = {
     user,
     business,
@@ -324,6 +329,8 @@ export function FoodLoopProvider({ children }: { children: ReactNode }) {
     recommendation,
     recipients,
     activePlan,
+    hasPendingSurplus,
+    hasRescuePlans,
     error,
     login,
     signup,

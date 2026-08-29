@@ -10,18 +10,18 @@ import {
   PackageCheck,
   X
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useFoodLoop } from "@/context/FoodLoopContext";
 import { cn } from "@/lib/utils";
 
-const navItems = [
-  { to: "/dashboard", label: "Kitchen hub", icon: Home },
-  { to: "/surplus", label: "Surplus board", icon: ClipboardList },
-  { to: "/matching", label: "Find partners", icon: MapPinned },
-  { to: "/rescue", label: "Rescue run", icon: PackageCheck },
-  { to: "/impact", label: "Impact plate", icon: BarChart3 }
-];
+const baseNavItems = [
+  { to: "/dashboard", label: "Kitchen hub", icon: Home, id: "dashboard" },
+  { to: "/surplus", label: "Surplus board", icon: ClipboardList, id: "surplus" },
+  { to: "/matching", label: "Find partners", icon: MapPinned, id: "matching" },
+  { to: "/rescue", label: "Rescue run", icon: PackageCheck, id: "rescue" },
+  { to: "/impact", label: "Impact plate", icon: BarChart3, id: "impact" }
+] as const;
 
 function Brand({ restaurantName }: { restaurantName?: string }) {
   return (
@@ -39,10 +39,16 @@ function Brand({ restaurantName }: { restaurantName?: string }) {
   );
 }
 
-function Navigation({ onNavigate }: { onNavigate?: () => void }) {
+function Navigation({
+  onNavigate,
+  items
+}: {
+  onNavigate?: () => void;
+  items: Array<(typeof baseNavItems)[number]>;
+}) {
   return (
     <nav className="grid gap-1.5" aria-label="FoodLoop navigation">
-      {navItems.map((item) => {
+      {items.map((item) => {
         const Icon = item.icon;
         return (
           <NavLink
@@ -52,7 +58,8 @@ function Navigation({ onNavigate }: { onNavigate?: () => void }) {
             className={({ isActive }) =>
               cn(
                 "flex items-center gap-3 rounded-full px-4 py-3 text-sm font-bold text-muted-foreground transition hover:bg-secondary hover:text-secondary-foreground",
-                isActive && "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground"
+                isActive &&
+                  "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground"
               )
             }
           >
@@ -96,14 +103,24 @@ function OwnerCard() {
 
 export default function AppLayout() {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const { business } = useFoodLoop();
+  const { business, hasPendingSurplus, hasRescuePlans } = useFoodLoop();
+
+  const navItems = useMemo(
+    () =>
+      baseNavItems.filter((item) => {
+        if (item.id === "matching") return hasPendingSurplus;
+        if (item.id === "rescue") return hasRescuePlans;
+        return true;
+      }),
+    [hasPendingSurplus, hasRescuePlans]
+  );
 
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-[272px_1fr]">
       <aside className="sticky top-0 hidden h-screen border-r border-border/70 bg-white/80 p-6 backdrop-blur-xl lg:flex lg:flex-col">
         <Brand restaurantName={business?.name} />
         <div className="mt-10">
-          <Navigation />
+          <Navigation items={navItems} />
         </div>
         <OwnerCard />
       </aside>
@@ -123,7 +140,7 @@ export default function AppLayout() {
           </div>
           {isMobileOpen ? (
             <div className="mt-4 space-y-3 rounded-[1.35rem] border bg-card p-3 shadow-xl">
-              <Navigation onNavigate={() => setIsMobileOpen(false)} />
+              <Navigation items={navItems} onNavigate={() => setIsMobileOpen(false)} />
               <OwnerCard />
             </div>
           ) : null}

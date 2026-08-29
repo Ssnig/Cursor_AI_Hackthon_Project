@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import RequireAuth from "@/components/auth/RequireAuth";
+import RequirePendingSurplus from "@/components/auth/RequirePendingSurplus";
 import AppLayout from "@/components/layout/AppLayout";
 import { FoodLoopProvider } from "@/context/FoodLoopContext";
 import Dashboard from "@/pages/Dashboard";
@@ -13,7 +14,7 @@ import Surplus from "@/pages/Surplus";
 
 /**
  * App shell — Backend services + WebMCP are wired through FoodLoopProvider.
- * Pages stay presentational; business logic lives in Backend/src/services.
+ * Matching is gated until the owner logs pending surplus.
  */
 export default function App() {
   useEffect(() => {
@@ -31,7 +32,14 @@ export default function App() {
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/surplus" element={<Surplus />} />
-            <Route path="/matching" element={<Matching />} />
+            <Route
+              path="/matching"
+              element={
+                <RequirePendingSurplus>
+                  <Matching />
+                </RequirePendingSurplus>
+              }
+            />
             <Route path="/rescue" element={<Rescue />} />
             <Route path="/impact" element={<Impact />} />
           </Route>

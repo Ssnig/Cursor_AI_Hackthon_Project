@@ -37,7 +37,8 @@ export default function SurplusForm() {
       <CardHeader>
         <CardTitle>Log new surplus</CardTitle>
         <p className="text-sm text-muted-foreground">
-          Submits into Backend <code>addSurplusItem</code>, then opens matching.
+          Creates a pending surplus batch, unlocks <strong>Find partners</strong>, then opens
+          matching.
         </p>
       </CardHeader>
       <CardContent>

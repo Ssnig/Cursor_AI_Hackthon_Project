@@ -1,4 +1,4 @@
-import { describe, it, beforeEach } from 'node:test';
+import { describe, it, beforeEach, afterEach, mock } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { resetStore, getState, updateState } from '../src/data/store.js';
@@ -15,12 +15,40 @@ import {
   getImpactMetrics,
 } from '../src/services/rescueService.js';
 import {
+  notifyRescueCreated,
+  getN8nNotificationStatus,
+  buildRescueCreatedPayload,
+  resetN8nNotificationStatus,
+} from '../src/services/n8nService.js';
+import {
   getModelContext,
   registerFoodLoopTools,
 } from '../src/webmcp/registerTools.js';
 
+/** @type {typeof fetch | undefined} */
+let originalFetch;
+
 beforeEach(() => {
   resetStore();
+  resetN8nNotificationStatus();
+  originalFetch = globalThis.fetch;
+  globalThis.fetch = mock.fn(async () => ({
+    ok: true,
+    status: 200,
+    async text() {
+      return JSON.stringify({
+        ok: true,
+        notified: true,
+        rescueId: 'rescue-001',
+        message: 'Coordinator notified',
+      });
+    },
+  }));
+});
+
+afterEach(() => {
+  if (originalFetch) globalThis.fetch = originalFetch;
+  else delete globalThis.fetch;
 });
 
 describe('getSurplusItems', () => {
@@ -86,7 +114,7 @@ describe('recommendationService', () => {
     assert.equal(rec.donateQuantity, 0);
     assert.equal(rec.discountQuantity, 20);
   });
-it('recommends recycle when past cutoff', () => {
+  it('recommends recycle when past cutoff', () => {
     const now = new Date('2026-08-29T21:00:00'); // after 20:00
     const rec = recommendAction('food-001', { now, nearbyCapacity: 30 });
     assert.equal(rec.action, 'recycle');
@@ -114,7 +142,7 @@ describe('findNearbyRecipients', () => {
 });
 
 describe('createRescue', () => {
-  it('locks allocation and updates status to confirmed rescue', () => {
+  it('locks allocation and updates status to confirmed rescue', async () => {
     const plan = createRescue('food-001', 'rec-001', 15);
     assert.equal(plan.donationQuantity, 15);
     assert.equal(plan.discountQuantity, 5);
@@ -126,6 +154,10 @@ describe('createRescue', () => {
 
     const recipient = getState().recipients.find((r) => r.id === 'rec-001');
     assert.equal(recipient.availableCapacity, 15);
+
+    // Allow fire-and-forget notify to settle.
+    await new Promise((r) => setTimeout(r, 20));
+    assert.equal(globalThis.fetch.mock.callCount(), 1);
   });
 
   it('rejects over-allocation beyond recipient capacity', () => {
@@ -161,6 +193,44 @@ describe('completeRescue / impact', () => {
   });
 });
 
+describe('n8nService', () => {
+  it('builds a stable rescue.created payload', () => {
+    const plan = createRescue('food-001', 'rec-001', 15, {
+      now: new Date('2026-08-29T18:00:00'),
+    });
+    const payload = buildRescueCreatedPayload(plan);
+    assert.equal(payload.event, 'rescue.created');
+    assert.equal(payload.source, 'foodloop-mvp');
+    assert.equal(payload.rescuePlan.donationQuantity, 15);
+    assert.equal(payload.recommendation.urgency, 'high');
+  });
+
+  it('marks notification ok on webhook success', async () => {
+    const plan = createRescue('food-001', 'rec-001', 15);
+    const result = await notifyRescueCreated(plan);
+    assert.equal(result.ok, true);
+    assert.equal(result.status, 200);
+    const status = getN8nNotificationStatus();
+    assert.equal(status.lastStatus, 'ok');
+    assert.equal(status.lastRescueId, plan.id);
+  });
+
+  it('marks notification error without rolling back rescue', async () => {
+    globalThis.fetch = mock.fn(async () => {
+      throw new Error('network down');
+    });
+
+    const plan = createRescue('food-001', 'rec-001', 15);
+    assert.equal(plan.status, 'planned');
+    assert.equal(getSurplusItems()[0].status, 'confirmed rescue');
+
+    const result = await notifyRescueCreated(plan);
+    assert.equal(result.ok, false);
+    assert.match(result.error, /network down/);
+    assert.equal(getN8nNotificationStatus().lastStatus, 'error');
+  });
+});
+
 describe('WebMCP registration', () => {
   it('returns unavailable fallback when modelContext is missing', async () => {
     assert.equal(getModelContext(), null);
@@ -169,7 +239,7 @@ describe('WebMCP registration', () => {
     assert.match(result.reason, /not available/i);
   });
 
-  it('registers four tools via document.modelContext.registerTool when present', async () => {
+  it('registers six tools via document.modelContext.registerTool when present', async () => {
     const registered = [];
     const fakeContext = {
       async registerTool(toolDef, _opts) {
@@ -193,6 +263,8 @@ describe('WebMCP registration', () => {
         'recommendAction',
         'findNearbyRecipients',
         'createRescue',
+        'completeRescue',
+        'getImpactMetrics',
       ]);
       assert.deepEqual(registered, result.tools);
 

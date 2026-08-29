@@ -26,6 +26,8 @@ const TOOL_NAMES = [
   'recommendAction',
   'findNearbyRecipients',
   'createRescue',
+  'completeRescue',
+  'getImpactMetrics',
 ];
 
 /**

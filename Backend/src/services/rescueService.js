@@ -2,6 +2,7 @@ import { METRICS } from '../data/demoData.js';
 import { getState, nextRescueId, updateState } from '../data/store.js';
 import { resolveFoodItem } from './surplusService.js';
 import { recommendAction } from './recommendationService.js';
+import { notifyRescueCreated } from './n8nService.js';
 
 /**
  * @typedef {Object} RescuePlan
@@ -39,9 +40,10 @@ function resolveRecipient(recipient) {
  * @param {string|import('./surplusService.js').SurplusItem} foodItem
  * @param {string|{ id: string }} recipient
  * @param {number} quantity - donation quantity to allocate to the recipient
+ * @param {{ now?: Date }} [options] - optional clock override (demo / tests)
  * @returns {RescuePlan}
  */
-export function createRescue(foodItem, recipient, quantity) {
+export function createRescue(foodItem, recipient, quantity, options = {}) {
   const item = resolveFoodItem(foodItem);
   const org = resolveRecipient(recipient);
 
@@ -74,7 +76,9 @@ export function createRescue(foodItem, recipient, quantity) {
     );
   }
 
-  const recommendation = recommendAction(item);
+  const recommendation = recommendAction(item, {
+    now: options.now instanceof Date ? options.now : undefined,
+  });
   const donationQuantity = quantity;
   const discountQuantity = item.quantity - donationQuantity;
   const planId = nextRescueId();
@@ -115,7 +119,7 @@ export function createRescue(foodItem, recipient, quantity) {
   });
 
   // Attach recommendation context for UI / agents (non-persisted convenience).
-  return {
+  const result = {
     ...getState().rescuePlans.find((entry) => entry.id === planId),
     recommendationSummary: {
       action: recommendation.action,
@@ -125,6 +129,25 @@ export function createRescue(foodItem, recipient, quantity) {
       discountQuantity: recommendation.discountQuantity,
     },
   };
+
+  // Fire-and-forget coordinator notify — never rolls back the rescue.
+  // UI can poll getN8nNotificationStatus() for a "Coordinator notified" badge.
+  void notifyRescueCreated(result, {
+    surplusItem: {
+      ...item,
+      status: 'confirmed rescue',
+    },
+    recipient: {
+      id: org.id,
+      name: org.name,
+      distanceKm: org.distanceKm,
+      address: org.address,
+      availableCapacityAfter: getState().recipients.find((r) => r.id === org.id)
+        ?.availableCapacity,
+    },
+  });
+
+  return result;
 }
 
 /**

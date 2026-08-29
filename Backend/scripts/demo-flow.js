@@ -1,6 +1,6 @@
 /**
  * End-to-end demo rehearsal (no UI):
- * intake → recommend → rank → rescue → complete → impact
+ * intake → recommend → rank → rescue → n8n notify → complete → impact
  */
 import {
   getSurplusItems,
@@ -9,10 +9,13 @@ import {
   createRescue,
   completeRescue,
   getImpactMetrics,
+  getN8nNotificationStatus,
   resetStore,
 } from '../src/services/index.js';
+import { resetN8nNotificationStatus } from '../src/services/n8nService.js';
 
 resetStore();
+resetN8nNotificationStatus();
 
 const items = getSurplusItems();
 console.log('1. Surplus items:', items);
@@ -29,7 +32,9 @@ console.log(
 );
 
 const top = nearby[0];
-const plan = createRescue(items[0], top.id, recommendation.donateQuantity);
+const plan = createRescue(items[0], top.id, recommendation.donateQuantity, {
+  now: new Date('2026-08-29T18:00:00'),
+});
 console.log('4. Rescue plan:', {
   id: plan.id,
   recipient: plan.recipientName,
@@ -37,6 +42,10 @@ console.log('4. Rescue plan:', {
   discount: plan.discountQuantity,
   status: plan.status,
 });
+
+// Wait briefly for fire-and-forget n8n webhook.
+await new Promise((r) => setTimeout(r, 800));
+console.log('4b. n8n notification:', getN8nNotificationStatus());
 
 const { impactMetrics } = completeRescue(plan.id);
 console.log('5. Impact after completion:', impactMetrics);

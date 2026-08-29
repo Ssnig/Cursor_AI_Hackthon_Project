@@ -20,7 +20,8 @@ if not exist "Frontend\node_modules\" (
 
 echo.
 echo [start] Frontend -^> http://localhost:5173
-echo n8n (yours): http://localhost:5678
+echo n8n (cloud): https://kyawsanhtun.app.n8n.cloud
+echo Rescue webhook: https://kyawsanhtun.app.n8n.cloud/webhook/foodloop-rescue-created
 echo.
 echo Close this window to stop the app.
 echo.

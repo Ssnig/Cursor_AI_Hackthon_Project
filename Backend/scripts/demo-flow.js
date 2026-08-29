@@ -43,8 +43,8 @@ console.log('4. Rescue plan:', {
   status: plan.status,
 });
 
-// Wait briefly for fire-and-forget n8n webhook.
-await new Promise((r) => setTimeout(r, 800));
+// Wait for cloud n8n webhook (can take a few seconds).
+await new Promise((r) => setTimeout(r, 5000));
 console.log('4b. n8n notification:', getN8nNotificationStatus());
 
 const { impactMetrics } = completeRescue(plan.id);

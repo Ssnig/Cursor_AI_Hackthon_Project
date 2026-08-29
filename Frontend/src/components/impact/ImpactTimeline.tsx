@@ -1,20 +1,39 @@
 import { CheckCircle2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { RescuePlan, SurplusItem } from "@/types";
 
-const milestones = [
-  "Surplus logged by ABC Bakery",
-  "Recommendation allocated donation and discount quantities",
-  "Community Food Center selected as recipient",
-  "Rescue pickup scheduled for this evening"
-];
+export default function ImpactTimeline({
+  plans,
+  items
+}: {
+  plans: RescuePlan[];
+  items: SurplusItem[];
+}) {
+  const milestones =
+    plans.length === 0
+      ? [
+          "Log surplus on the Surplus page",
+          "Review recommendation and pick a recipient",
+          "Create rescue — item locks to confirmed rescue",
+          "Mark complete to update impact metrics"
+        ]
+      : plans.flatMap((plan) => {
+          const item = items.find((entry) => entry.id === plan.surplusItemId);
+          const name = item?.name || plan.foodName || "Surplus batch";
+          return [
+            `${name} linked to ${plan.recipientName || "recipient"} (${plan.status})`,
+            plan.status === "completed"
+              ? `Rescue ${plan.id} completed — impact counted`
+              : `Rescue ${plan.id} planned — awaiting completion`
+          ];
+        });
 
-export default function ImpactTimeline() {
   return (
     <Card>
       <CardHeader>
         <CardTitle>Impact trail</CardTitle>
         <p className="text-sm text-muted-foreground">
-          A simple event trail showing how one surplus batch becomes measurable impact.
+          Live trail from Backend rescue plans.
         </p>
       </CardHeader>
       <CardContent className="grid gap-4">

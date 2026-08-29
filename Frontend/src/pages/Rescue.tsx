@@ -3,14 +3,48 @@ import { ArrowRight } from "lucide-react";
 import PageHeader from "@/components/dashboard/PageHeader";
 import RescueSummary from "@/components/rescue/RescueSummary";
 import { Button } from "@/components/ui/button";
-import { recipients, rescuePlans, surplusItems } from "@/data/mockData";
+import { useFoodLoop } from "@/context/FoodLoopContext";
 
 export default function Rescue() {
-  const plan = rescuePlans[0];
-  const item = surplusItems.find((surplusItem) => surplusItem.id === plan.surplusItemId);
-  const recipient = recipients.find((partner) => partner.id === plan.recipientId);
+  const {
+    activePlan,
+    items,
+    recipients,
+    completeActiveRescue,
+    n8n,
+    error
+  } = useFoodLoop();
 
-  if (!item || !recipient) {
+  if (!activePlan) {
+    return (
+      <div className="grid gap-8">
+        <PageHeader
+          eyebrow="Rescue execution"
+          title="No rescue plan yet."
+          description="Select a recipient on the Matching page to create a Backend rescue plan."
+          action={
+            <Button asChild>
+              <Link to="/matching">Go to matching</Link>
+            </Button>
+          }
+        />
+      </div>
+    );
+  }
+
+  const item = items.find((surplusItem) => surplusItem.id === activePlan.surplusItemId);
+  const recipient =
+    recipients.find((partner) => partner.id === activePlan.recipientId) || {
+      id: activePlan.recipientId,
+      name: activePlan.recipientName || "Recipient",
+      distanceKm: 0,
+      capacity: activePlan.donationQuantity || 0,
+      matchScore: 0,
+      address: activePlan.pickupLocation || "",
+      pickupWindow: `Until ${activePlan.availableUntil || "cutoff"}`
+    };
+
+  if (!item) {
     return null;
   }
 
@@ -19,18 +53,31 @@ export default function Rescue() {
       <PageHeader
         eyebrow="Rescue execution"
         title="Confirm pickup details before the cutoff window closes."
-        description="The rescue screen makes the human approval step clear while staying disconnected from backend dispatch or WebMCP actions."
+        description={`Plan ${activePlan.id} · n8n: ${n8n.lastStatus}${n8n.lastMessage ? ` — ${n8n.lastMessage}` : ""}`}
         action={
-          <Button asChild variant="secondary">
-            <Link to="/impact">
-              View impact
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            {activePlan.status === "planned" ? (
+              <Button type="button" onClick={completeActiveRescue}>
+                Mark rescue complete
+              </Button>
+            ) : null}
+            <Button asChild variant="secondary">
+              <Link to="/impact">
+                View impact
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
         }
       />
 
-      <RescueSummary plan={plan} item={item} recipient={recipient} />
+      {error ? (
+        <p className="rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          {error}
+        </p>
+      ) : null}
+
+      <RescueSummary plan={activePlan} item={item} recipient={recipient} />
     </div>
   );
 }

@@ -3,13 +3,17 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { SurplusItem } from "@/types";
 
-const statusLabel: Record<SurplusItem["status"], string> = {
-  pending: "Pending",
-  matched: "Matched",
-  "rescue-confirmed": "Rescue confirmed"
-};
+function statusLabel(status: string): string {
+  if (status === "pending") return "Pending";
+  if (status === "confirmed rescue") return "Rescue confirmed";
+  if (status === "rescued") return "Rescued";
+  if (status === "expired") return "Expired";
+  return status;
+}
 
 export default function SurplusCard({ item }: { item: SurplusItem }) {
+  const pending = item.status === "pending";
+
   return (
     <Card>
       <CardHeader className="flex-row items-start justify-between space-y-0">
@@ -17,9 +21,7 @@ export default function SurplusCard({ item }: { item: SurplusItem }) {
           <CardTitle>{item.name}</CardTitle>
           <p className="mt-2 text-sm text-muted-foreground">{item.category}</p>
         </div>
-        <Badge variant={item.status === "pending" ? "warning" : "secondary"}>
-          {statusLabel[item.status]}
-        </Badge>
+        <Badge variant={pending ? "warning" : "secondary"}>{statusLabel(item.status)}</Badge>
       </CardHeader>
       <CardContent className="grid gap-3 text-sm text-muted-foreground">
         <div className="flex items-center gap-2">

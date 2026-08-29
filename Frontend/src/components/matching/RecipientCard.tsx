@@ -6,9 +6,14 @@ import type { Recipient } from "@/types";
 interface RecipientCardProps {
   recipient: Recipient;
   featured?: boolean;
+  onSelect?: () => void;
 }
 
-export default function RecipientCard({ recipient, featured = false }: RecipientCardProps) {
+export default function RecipientCard({
+  recipient,
+  featured = false,
+  onSelect
+}: RecipientCardProps) {
   return (
     <Card className={featured ? "border-primary ring-4 ring-primary/10" : ""}>
       <CardContent className="flex flex-col gap-5 p-6 md:flex-row md:items-start md:justify-between">
@@ -32,7 +37,7 @@ export default function RecipientCard({ recipient, featured = false }: Recipient
             </span>
             <span className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-primary" />
-              Pickup window {recipient.pickupWindow}
+              Pickup window {recipient.pickupWindow || "Before cutoff"}
             </span>
           </div>
         </div>
@@ -45,7 +50,13 @@ export default function RecipientCard({ recipient, featured = false }: Recipient
               Match score
             </p>
           </div>
-          <Button variant={featured ? "default" : "secondary"}>Select recipient</Button>
+          <Button
+            type="button"
+            variant={featured ? "default" : "secondary"}
+            onClick={onSelect}
+          >
+            Select recipient
+          </Button>
         </div>
       </CardContent>
     </Card>

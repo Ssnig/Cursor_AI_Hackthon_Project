@@ -16,7 +16,11 @@ export default function RescueSummary({ plan, item, recipient }: RescueSummaryPr
         <div>
           <CardTitle>Confirmed rescue plan</CardTitle>
           <p className="mt-2 text-sm text-muted-foreground">
-            Pickup details are represented with local mock data for frontend demo flow.
+            Created by Backend <code>createRescue</code>
+            {plan.donationQuantity != null
+              ? ` · donate ${plan.donationQuantity}, discount ${plan.discountQuantity ?? 0}`
+              : ""}
+            .
           </p>
         </div>
         <Badge variant="secondary">{plan.status}</Badge>
@@ -27,28 +31,36 @@ export default function RescueSummary({ plan, item, recipient }: RescueSummaryPr
             <PackageCheck className="mt-1 h-5 w-5 text-primary" />
             <div>
               <p className="font-semibold">{item.name}</p>
-              <p className="text-sm text-muted-foreground">{item.quantity} portions available</p>
+              <p className="text-sm text-muted-foreground">
+                {plan.donationQuantity ?? item.quantity} portions for donation pickup
+              </p>
             </div>
           </div>
           <div className="flex items-start gap-3">
             <MapPin className="mt-1 h-5 w-5 text-primary" />
             <div>
               <p className="font-semibold">{recipient.name}</p>
-              <p className="text-sm text-muted-foreground">{recipient.address}</p>
+              <p className="text-sm text-muted-foreground">
+                {recipient.address || plan.pickupLocation}
+              </p>
             </div>
           </div>
           <div className="flex items-start gap-3">
             <Clock className="mt-1 h-5 w-5 text-primary" />
             <div>
-              <p className="font-semibold">Pickup at {plan.pickupTime}</p>
-              <p className="text-sm text-muted-foreground">{recipient.pickupWindow}</p>
+              <p className="font-semibold">Pickup at {plan.pickupTime || "TBD"}</p>
+              <p className="text-sm text-muted-foreground">
+                Available until {plan.availableUntil || item.availableUntil}
+              </p>
             </div>
           </div>
           <div className="flex items-start gap-3">
             <CheckCircle2 className="mt-1 h-5 w-5 text-primary" />
             <div>
               <p className="font-semibold">Driver note</p>
-              <p className="text-sm text-muted-foreground">{plan.driverNote}</p>
+              <p className="text-sm text-muted-foreground">
+                {plan.driverNote || "Use side entrance near loading bay."}
+              </p>
             </div>
           </div>
         </div>

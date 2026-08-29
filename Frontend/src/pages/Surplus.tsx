@@ -1,22 +1,47 @@
 import PageHeader from "@/components/dashboard/PageHeader";
 import SurplusCard from "@/components/surplus/SurplusCard";
 import SurplusForm from "@/components/surplus/SurplusForm";
-import { surplusItems } from "@/data/mockData";
+import { Button } from "@/components/ui/button";
+import { useFoodLoop } from "@/context/FoodLoopContext";
+import { cn } from "@/lib/utils";
 
 export default function Surplus() {
+  const { items, selectedItemId, selectItem, resetDemo, error } = useFoodLoop();
+
   return (
     <div className="grid gap-8">
       <PageHeader
         eyebrow="Surplus intake"
         title="Capture food, quantity, location, and cutoff time."
-        description="This page works with local mock data for now and keeps the form boundary ready for the backend recommendation service."
+        description="Form writes into the shared Backend store used by Matching, Rescue, Impact, and WebMCP tools."
+        action={
+          <Button type="button" variant="outline" onClick={resetDemo}>
+            Reset demo data
+          </Button>
+        }
       />
+
+      {error ? (
+        <p className="rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          {error}
+        </p>
+      ) : null}
 
       <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
         <SurplusForm />
         <div className="grid gap-4">
-          {surplusItems.map((item) => (
-            <SurplusCard key={item.id} item={item} />
+          {items.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className={cn(
+                "rounded-3xl text-left transition",
+                selectedItemId === item.id && "ring-4 ring-primary/15"
+              )}
+              onClick={() => selectItem(item.id)}
+            >
+              <SurplusCard item={item} />
+            </button>
           ))}
         </div>
       </section>

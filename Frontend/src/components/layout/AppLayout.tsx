@@ -79,7 +79,7 @@ export default function AppLayout() {
           </div>
           <p className="text-sm font-bold">Rescue loop active</p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Mock data keeps the frontend ready for service-layer integration.
+            Connected to Backend services, WebMCP tools, and n8n webhooks.
           </p>
         </div>
       </aside>

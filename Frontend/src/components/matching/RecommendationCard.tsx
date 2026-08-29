@@ -14,6 +14,9 @@ export default function RecommendationCard({
         <div>
           <CardTitle>Recommended action split</CardTitle>
           <p className="mt-2 text-sm text-muted-foreground">{recommendation.reason}</p>
+          <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Primary action: {recommendation.action}
+          </p>
         </div>
         <Badge variant="urgent">{recommendation.urgency} urgency</Badge>
       </CardHeader>

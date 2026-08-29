@@ -1,11 +1,29 @@
-import { FormEvent } from "react";
+import { FormEvent, useState } from "react";
 import { ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useFoodLoop } from "@/context/FoodLoopContext";
 
 export default function SurplusForm() {
+  const navigate = useNavigate();
+  const { submitSurplus } = useFoodLoop();
+  const [name, setName] = useState("Chicken Sandwiches");
+  const [category, setCategory] = useState("Prepared food");
+  const [quantity, setQuantity] = useState(20);
+  const [availableUntil, setAvailableUntil] = useState("20:00");
+  const [location, setLocation] = useState("ABC Bakery");
+
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    submitSurplus({
+      name,
+      category,
+      quantity: Number(quantity),
+      availableUntil,
+      location
+    });
+    navigate("/matching");
   }
 
   return (
@@ -13,8 +31,7 @@ export default function SurplusForm() {
       <CardHeader>
         <CardTitle>Log new surplus</CardTitle>
         <p className="text-sm text-muted-foreground">
-          Mock form for the business dashboard. It is ready to connect to the
-          service layer later.
+          Submits into Backend <code>addSurplusItem</code>, then opens matching.
         </p>
       </CardHeader>
       <CardContent>
@@ -24,40 +41,53 @@ export default function SurplusForm() {
               Item name
               <input
                 className="h-11 rounded-2xl border bg-background px-4 outline-none focus:ring-2 focus:ring-ring"
-                defaultValue="Chicken Sandwiches"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
               />
             </label>
             <label className="grid gap-2 text-sm font-semibold">
               Category
-              <select className="h-11 rounded-2xl border bg-background px-4 outline-none focus:ring-2 focus:ring-ring">
+              <select
+                className="h-11 rounded-2xl border bg-background px-4 outline-none focus:ring-2 focus:ring-ring"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+              >
                 <option>Prepared food</option>
                 <option>Bakery</option>
                 <option>Produce</option>
                 <option>Pantry</option>
+                <option>Dairy</option>
               </select>
             </label>
             <label className="grid gap-2 text-sm font-semibold">
               Quantity
               <input
                 className="h-11 rounded-2xl border bg-background px-4 outline-none focus:ring-2 focus:ring-ring"
-                defaultValue="20"
+                value={quantity}
+                onChange={(e) => setQuantity(Number(e.target.value))}
                 type="number"
-                min="1"
+                min={1}
+                required
               />
             </label>
             <label className="grid gap-2 text-sm font-semibold">
               Available until
               <input
                 className="h-11 rounded-2xl border bg-background px-4 outline-none focus:ring-2 focus:ring-ring"
-                defaultValue="20:00"
+                value={availableUntil}
+                onChange={(e) => setAvailableUntil(e.target.value)}
                 type="time"
+                required
               />
             </label>
             <label className="grid gap-2 text-sm font-semibold md:col-span-2">
               Location
               <input
                 className="h-11 rounded-2xl border bg-background px-4 outline-none focus:ring-2 focus:ring-ring"
-                defaultValue="ABC Bakery"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                required
               />
             </label>
           </div>

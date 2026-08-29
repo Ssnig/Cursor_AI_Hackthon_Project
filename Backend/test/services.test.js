@@ -1,0 +1,213 @@
+import { describe, it, beforeEach } from 'node:test';
+import assert from 'node:assert/strict';
+
+import { resetStore, getState, updateState } from '../src/data/store.js';
+import { getSurplusItems } from '../src/services/surplusService.js';
+import { findNearbyRecipients } from '../src/services/matchingService.js';
+import {
+  recommendAction,
+  minutesUntilCutoff,
+  urgencyFromMinutes,
+} from '../src/services/recommendationService.js';
+import {
+  createRescue,
+  completeRescue,
+  getImpactMetrics,
+} from '../src/services/rescueService.js';
+import {
+  getModelContext,
+  registerFoodLoopTools,
+} from '../src/webmcp/registerTools.js';
+
+beforeEach(() => {
+  resetStore();
+});
+
+describe('getSurplusItems', () => {
+  it('returns demo chicken sandwiches from ABC Bakery', () => {
+    const items = getSurplusItems();
+    assert.equal(items.length, 1);
+    assert.equal(items[0].name, 'Chicken Sandwiches');
+    assert.equal(items[0].quantity, 20);
+    assert.equal(items[0].availableUntil, '20:00');
+    assert.equal(items[0].location, 'ABC Bakery');
+    assert.equal(items[0].status, 'pending');
+  });
+});
+
+describe('recommendationService', () => {
+  it('classifies urgency from cutoff proximity', () => {
+    assert.equal(urgencyFromMinutes(30), 'critical');
+    assert.equal(urgencyFromMinutes(90), 'high');
+    assert.equal(urgencyFromMinutes(180), 'medium');
+    assert.equal(urgencyFromMinutes(300), 'low');
+  });
+
+  it('computes minutes until cutoff deterministically', () => {
+    const now = new Date('2026-08-29T18:00:00');
+    assert.equal(minutesUntilCutoff('20:00', now), 120);
+  });
+
+  it('demo: 20 sandwiches, 2h left, capacity 30 → donate 15 / discount 5', () => {
+    // 18:00 with availableUntil 20:00 → 120 minutes → high urgency
+    const now = new Date('2026-08-29T18:00:00');
+    const rec = recommendAction('food-001', { now, nearbyCapacity: 30 });
+
+    assert.deepEqual(
+      {
+        action: rec.action,
+        donateQuantity: rec.donateQuantity,
+        discountQuantity: rec.discountQuantity,
+        urgency: rec.urgency,
+      },
+      {
+        action: 'donate',
+        donateQuantity: 15,
+        discountQuantity: 5,
+        urgency: 'high',
+      },
+    );
+    assert.equal(typeof rec.reasoning, 'string');
+    assert.match(rec.reasoning, /not an ML prediction/i);
+  });
+
+  it('discounts the remainder when nearby capacity is insufficient', () => {
+    const now = new Date('2026-08-29T18:00:00');
+    const rec = recommendAction('food-001', { now, nearbyCapacity: 10 });
+    assert.equal(rec.action, 'donate');
+    assert.equal(rec.donateQuantity, 10);
+    assert.equal(rec.discountQuantity, 10);
+  });
+
+  it('recommends full discount when there is no nearby capacity', () => {
+    const now = new Date('2026-08-29T18:00:00');
+    const rec = recommendAction('food-001', { now, nearbyCapacity: 0 });
+    assert.equal(rec.action, 'discount');
+    assert.equal(rec.donateQuantity, 0);
+    assert.equal(rec.discountQuantity, 20);
+  });
+it('recommends recycle when past cutoff', () => {
+    const now = new Date('2026-08-29T21:00:00'); // after 20:00
+    const rec = recommendAction('food-001', { now, nearbyCapacity: 30 });
+    assert.equal(rec.action, 'recycle');
+    assert.equal(rec.donateQuantity, 0);
+    assert.equal(rec.discountQuantity, 0);
+  });
+});
+
+describe('findNearbyRecipients', () => {
+  it('ranks Community Food Center first for chicken sandwiches', () => {
+    const ranked = findNearbyRecipients('food-001');
+    assert.equal(ranked.length, 3);
+    assert.equal(ranked[0].name, 'Community Food Center');
+    assert.equal(ranked[0].distanceKm, 2.1);
+    assert.ok(ranked[0].matchScore >= ranked[1].matchScore);
+    assert.deepEqual(
+      ranked.map((r) => r.name),
+      [
+        'Community Food Center',
+        'Hope Shelter',
+        'University Community Kitchen',
+      ],
+    );
+  });
+});
+
+describe('createRescue', () => {
+  it('locks allocation and updates status to confirmed rescue', () => {
+    const plan = createRescue('food-001', 'rec-001', 15);
+    assert.equal(plan.donationQuantity, 15);
+    assert.equal(plan.discountQuantity, 5);
+    assert.equal(plan.recipientName, 'Community Food Center');
+    assert.equal(plan.status, 'planned');
+
+    const item = getSurplusItems()[0];
+    assert.equal(item.status, 'confirmed rescue');
+
+    const recipient = getState().recipients.find((r) => r.id === 'rec-001');
+    assert.equal(recipient.availableCapacity, 15);
+  });
+
+  it('rejects over-allocation beyond recipient capacity', () => {
+    updateState((draft) => {
+      const uni = draft.recipients.find((r) => r.id === 'rec-003');
+      uni.availableCapacity = 5;
+    });
+
+    assert.throws(
+      () => createRescue('food-001', 'rec-003', 10),
+      /exceeds recipient capacity/,
+    );
+  });
+
+  it('rejects rescue on non-pending items', () => {
+    createRescue('food-001', 'rec-001', 10);
+    assert.throws(
+      () => createRescue('food-001', 'rec-002', 5),
+      /cannot be rescued/,
+    );
+  });
+});
+
+describe('completeRescue / impact', () => {
+  it('updates meals, kg diverted, and value recovered', () => {
+    const plan = createRescue('food-001', 'rec-001', 15);
+    const { impactMetrics } = completeRescue(plan.id);
+
+    assert.equal(impactMetrics.mealsRescued, 15);
+    assert.equal(impactMetrics.foodDivertedKg, 9);
+    assert.ok(impactMetrics.valueRecovered > 0);
+    assert.deepEqual(getImpactMetrics(), impactMetrics);
+  });
+});
+
+describe('WebMCP registration', () => {
+  it('returns unavailable fallback when modelContext is missing', async () => {
+    assert.equal(getModelContext(), null);
+    const result = await registerFoodLoopTools();
+    assert.equal(result.registered, false);
+    assert.match(result.reason, /not available/i);
+  });
+
+  it('registers four tools via document.modelContext.registerTool when present', async () => {
+    const registered = [];
+    const fakeContext = {
+      async registerTool(toolDef, _opts) {
+        registered.push(toolDef.name);
+        assert.equal(typeof toolDef.execute, 'function');
+        assert.equal(toolDef.inputSchema.type, 'object');
+      },
+    };
+
+    Object.defineProperty(globalThis, 'document', {
+      value: { modelContext: fakeContext },
+      configurable: true,
+      writable: true,
+    });
+
+    try {
+      const result = await registerFoodLoopTools();
+      assert.equal(result.registered, true);
+      assert.deepEqual(result.tools, [
+        'getSurplusItems',
+        'recommendAction',
+        'findNearbyRecipients',
+        'createRescue',
+      ]);
+      assert.deepEqual(registered, result.tools);
+
+      // Invoke recommendAction through the registered execute path.
+      const { recommendAction: recommend } = await import(
+        '../src/services/recommendationService.js'
+      );
+      const rec = recommend('food-001', {
+        now: new Date('2026-08-29T18:00:00'),
+        nearbyCapacity: 30,
+      });
+      assert.equal(rec.action, 'donate');
+      assert.equal(rec.donateQuantity, 15);
+    } finally {
+      delete globalThis.document;
+    }
+  });
+});

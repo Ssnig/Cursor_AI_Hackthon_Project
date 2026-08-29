@@ -17,23 +17,6 @@ export interface Recipient {
   capacity: number;
   matchScore: number;
   pickupWindow: string;
-  address: string;
-}
-
-export interface Recommendation {
-  donationQuantity: number;
-  discountQuantity: number;
-  urgency: "low" | "medium" | "high";
-  reason: string;
-}
-
-export interface RescuePlan {
-  id: string;
-  surplusItemId: string;
-  recipientId: string;
-  pickupTime: string;
-  status: "scheduled" | "in-progress" | "completed";
-  driverNote: string;
 }
 
 export interface ImpactMetric {

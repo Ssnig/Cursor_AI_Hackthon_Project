@@ -12,19 +12,22 @@ export default function PageHeader({
   action?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+    <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between border-b border-cyan-500/20 pb-4">
       <div className="max-w-3xl">
-        <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-primary">
-          {eyebrow}
-        </p>
-        <h1 className="font-display mt-3 text-4xl font-semibold tracking-tight text-foreground md:text-5xl">
+        <div className="flex items-center gap-2">
+          <span className="inline-block w-2 h-2 bg-cyan-400"></span>
+          <p className="text-[11px] font-mono font-extrabold uppercase tracking-[0.25em] text-cyan-400">
+            {eyebrow}
+          </p>
+        </div>
+        <h1 className="font-display mt-2 text-3xl font-black tracking-wider text-white uppercase neon-text-glow md:text-4xl">
           {title}
         </h1>
-        <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
+        <p className="mt-2 max-w-2xl text-xs sm:text-sm font-mono leading-relaxed text-cyan-400/80">
           {description}
         </p>
       </div>
-      {action}
+      {action ? <div className="shrink-0">{action}</div> : null}
     </div>
   );
 }

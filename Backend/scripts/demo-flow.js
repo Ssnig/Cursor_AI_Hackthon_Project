@@ -3,6 +3,7 @@
  * intake → recommend → rank → rescue → n8n notify → complete → impact
  */
 import {
+  addSurplusItem,
   getSurplusItems,
   findNearbyRecipients,
   recommendAction,
@@ -17,22 +18,29 @@ import { resetN8nNotificationStatus } from '../src/services/n8nService.js';
 resetStore();
 resetN8nNotificationStatus();
 
-const items = getSurplusItems();
-console.log('1. Surplus items:', items);
+const created = addSurplusItem({
+  name: 'Chicken Sandwiches',
+  category: 'prepared-food',
+  quantity: 20,
+  availableUntil: '20:00',
+  location: 'ABC Bakery',
+  businessId: 'biz-001',
+});
+console.log('1. Surplus items after intake:', getSurplusItems());
 
-const recommendation = recommendAction(items[0], {
+const recommendation = recommendAction(created, {
   now: new Date('2026-08-29T18:00:00'),
 });
 console.log('2. Recommendation:', recommendation);
 
-const nearby = findNearbyRecipients(items[0]);
+const nearby = findNearbyRecipients(created);
 console.log(
   '3. Nearby recipients:',
   nearby.map((r) => `${r.name} (${r.distanceKm} km, ${r.matchScore}% match)`),
 );
 
 const top = nearby[0];
-const plan = createRescue(items[0], top.id, recommendation.donateQuantity, {
+const plan = createRescue(created, top.id, recommendation.donateQuantity, {
   now: new Date('2026-08-29T18:00:00'),
 });
 console.log('4. Rescue plan:', {
@@ -43,8 +51,7 @@ console.log('4. Rescue plan:', {
   status: plan.status,
 });
 
-// Wait for cloud n8n webhook (can take a few seconds).
-await new Promise((r) => setTimeout(r, 5000));
+await new Promise((r) => setTimeout(r, 50));
 console.log('4b. n8n notification:', getN8nNotificationStatus());
 
 const { impactMetrics } = completeRescue(plan.id);

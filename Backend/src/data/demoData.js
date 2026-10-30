@@ -27,18 +27,7 @@ export const users = [
 ];
 
 /** @type {import('../services/surplusService.js').SurplusItem[]} */
-export const surplusItems = [
-  {
-    id: 'food-001',
-    name: 'Chicken Sandwiches',
-    category: 'prepared-food',
-    quantity: 20,
-    availableUntil: '20:00',
-    location: 'ABC Bakery',
-    status: 'pending',
-    businessId: business.id,
-  },
-];
+export const surplusItems = [];
 
 /** @type {import('../services/matchingService.js').Recipient[]} */
 export const recipients = [

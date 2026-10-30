@@ -1,75 +1,77 @@
-import { Clock, MapPin, Package } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Clock, MapPin, Package, ShieldAlert } from "lucide-react";
 import type { SurplusItem } from "@/types";
 
 function statusLabel(status: string): string {
-  if (status === "pending") return "Needs rescue";
-  if (status === "confirmed rescue") return "Pickup locked";
-  if (status === "rescued") return "Rescued";
-  if (status === "expired") return "Expired";
-  return status;
+  if (status === "pending") return "RESCUE PENDING";
+  if (status === "confirmed rescue") return "ALLOCATION LOCKED";
+  if (status === "rescued") return "RESCUED // COMPLETED";
+  if (status === "expired") return "BIO-DECAY EXPIRED";
+  return status.toUpperCase();
 }
 
-function categoryVisual(category: string): { emoji: string; tint: string; label: string } {
+function categoryBadge(category: string): { symbol: string; label: string } {
   const key = category.toLowerCase();
-  if (key.includes("bakery")) {
-    return { emoji: "🥖", tint: "from-amber-200 to-orange-100", label: "Bakery" };
-  }
-  if (key.includes("produce")) {
-    return { emoji: "🥗", tint: "from-lime-200 to-green-100", label: "Produce" };
-  }
-  if (key.includes("dairy")) {
-    return { emoji: "🧀", tint: "from-sky-100 to-blue-50", label: "Dairy" };
-  }
-  if (key.includes("packaged") || key.includes("pantry")) {
-    return { emoji: "📦", tint: "from-stone-200 to-stone-100", label: "Pantry" };
-  }
-  return { emoji: "🥪", tint: "from-emerald-200 to-teal-100", label: "Prepared" };
+  if (key.includes("bakery")) return { symbol: "🥖", label: "HYDRO-BAKERY" };
+  if (key.includes("produce")) return { symbol: "🥗", label: "SYNTH-PRODUCE" };
+  if (key.includes("dairy")) return { symbol: "🧀", label: "BIO-DAIRY" };
+  if (key.includes("packaged") || key.includes("pantry")) return { symbol: "📦", label: "DRY RESERVES" };
+  return { symbol: "🥪", label: "PREPARED FOOD" };
 }
 
 export default function SurplusCard({ item }: { item: SurplusItem }) {
   const pending = item.status === "pending";
-  const visual = categoryVisual(item.category);
+  const badge = categoryBadge(item.category);
 
   return (
-    <Card className="overflow-hidden">
-      <div
-        className={`flex items-center justify-between bg-gradient-to-r px-5 py-4 ${visual.tint}`}
-      >
+    <div
+      className={`hud-box p-5 text-left relative transition-all ${
+        pending ? "border-cyan-400 shadow-cyan-glow" : "border-cyan-500/30"
+      }`}
+    >
+      {/* Top Banner */}
+      <div className="flex items-center justify-between border-b border-cyan-500/20 pb-3 mb-3">
         <div className="flex items-center gap-3">
-          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/80 text-2xl shadow-sm">
-            {visual.emoji}
+          <span className="flex h-10 w-10 items-center justify-center rounded bg-cyan-950/80 border border-cyan-400/40 text-xl shadow-[0_0_10px_rgba(0,240,255,0.3)]">
+            {badge.symbol}
           </span>
           <div>
-            <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-primary/80">
-              {visual.label}
+            <p className="text-[10px] font-mono font-bold tracking-widest text-cyan-400 uppercase">
+              {badge.label}
             </p>
-            <p className="text-sm font-semibold text-foreground/80">{item.quantity} portions</p>
+            <p className="text-sm font-mono font-black text-white">{item.quantity} UNITS</p>
           </div>
         </div>
-        <Badge variant={pending ? "warning" : "secondary"}>{statusLabel(item.status)}</Badge>
+
+        <span
+          className={`food-chip ${
+            pending
+              ? "bg-amber-950/80 text-amber-300 border-amber-500/50 animate-pulse"
+              : "bg-emerald-950/80 text-emerald-300 border-emerald-500/50"
+          }`}
+        >
+          {statusLabel(item.status)}
+        </span>
       </div>
-      <CardHeader className="flex-row items-start justify-between space-y-0 pt-5">
-        <div>
-          <CardTitle>{item.name}</CardTitle>
-          <p className="mt-1 text-sm text-muted-foreground">{item.category}</p>
-        </div>
-      </CardHeader>
-      <CardContent className="grid gap-3 text-sm text-muted-foreground">
+
+      <div>
+        <h4 className="font-display text-base font-bold text-white tracking-wide">{item.name}</h4>
+        <p className="mt-0.5 text-[11px] font-mono text-cyan-400/70">{item.category}</p>
+      </div>
+
+      <div className="mt-4 grid gap-2 text-xs font-mono text-cyan-400/80 border-t border-cyan-500/20 pt-3">
         <div className="flex items-center gap-2">
-          <Package className="h-4 w-4 text-primary" />
-          {item.quantity} portions available
-        </div>
-        <div className="flex items-center gap-2">
-          <Clock className="h-4 w-4 text-accent" />
-          Available until {item.availableUntil}
+          <Clock className="h-3.5 w-3.5 text-pink-400" />
+          CUTOFF WINDOW: <span className="text-pink-400 font-bold">{item.availableUntil}</span>
         </div>
         <div className="flex items-center gap-2">
-          <MapPin className="h-4 w-4 text-primary" />
-          {item.location}
+          <MapPin className="h-3.5 w-3.5 text-cyan-400" />
+          DISPATCH DEPOT: <span className="text-white">{item.location}</span>
         </div>
-      </CardContent>
-    </Card>
+        <div className="flex items-center gap-2">
+          <Package className="h-3.5 w-3.5 text-cyan-400" />
+          BUFFER ALLOCATION: <span className="text-emerald-400 font-bold">{item.quantity} PORTIONS</span>
+        </div>
+      </div>
+    </div>
   );
 }

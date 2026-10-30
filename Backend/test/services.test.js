@@ -2,7 +2,7 @@ import { describe, it, beforeEach, afterEach, mock } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { resetStore, getState, updateState } from '../src/data/store.js';
-import { getSurplusItems } from '../src/services/surplusService.js';
+import { addSurplusItem, getSurplusItems } from '../src/services/surplusService.js';
 import { findNearbyRecipients } from '../src/services/matchingService.js';
 import {
   recommendAction,
@@ -29,7 +29,18 @@ import {
   signup,
   DEMO_CREDENTIALS,
 } from '../src/services/authService.js';
-import { addSurplusItem } from '../src/services/surplusService.js';
+
+/** Seed the classic demo lot (food-001) for flow tests. */
+function seedDemoSurplus() {
+  return addSurplusItem({
+    name: 'Chicken Sandwiches',
+    category: 'prepared-food',
+    quantity: 20,
+    availableUntil: '20:00',
+    location: 'ABC Bakery',
+    businessId: 'biz-001',
+  });
+}
 
 /** @type {typeof fetch | undefined} */
 let originalFetch;
@@ -58,7 +69,13 @@ afterEach(() => {
 });
 
 describe('getSurplusItems', () => {
-  it('returns demo chicken sandwiches from ABC Bakery', () => {
+  it('starts with an empty surplus board', () => {
+    assert.equal(getSurplusItems().length, 0);
+  });
+
+  it('returns chicken sandwiches after intake', () => {
+    const item = seedDemoSurplus();
+    assert.equal(item.id, 'food-001');
     const items = getSurplusItems();
     assert.equal(items.length, 1);
     assert.equal(items[0].name, 'Chicken Sandwiches');
@@ -69,6 +86,7 @@ describe('getSurplusItems', () => {
   });
 
   it('filters surplus by businessId', () => {
+    seedDemoSurplus();
     const abc = getSurplusItems({ businessId: 'biz-001' });
     assert.equal(abc.length, 1);
     assert.equal(getSurplusItems({ businessId: 'biz-999' }).length, 0);
@@ -111,11 +129,16 @@ describe('authService', () => {
     });
 
     assert.equal(getSurplusItems({ businessId: business.id }).length, 1);
-    assert.equal(getSurplusItems({ businessId: 'biz-001' }).length, 1);
+    // Demo ABC Bakery starts with an empty board — scoped lists stay isolated.
+    assert.equal(getSurplusItems({ businessId: 'biz-001' }).length, 0);
   });
 });
 
 describe('recommendationService', () => {
+  beforeEach(() => {
+    seedDemoSurplus();
+  });
+
   it('classifies urgency from cutoff proximity', () => {
     assert.equal(urgencyFromMinutes(30), 'critical');
     assert.equal(urgencyFromMinutes(90), 'high');
@@ -176,6 +199,10 @@ describe('recommendationService', () => {
 });
 
 describe('findNearbyRecipients', () => {
+  beforeEach(() => {
+    seedDemoSurplus();
+  });
+
   it('ranks Community Food Center first for chicken sandwiches', () => {
     const ranked = findNearbyRecipients('food-001');
     assert.equal(ranked.length, 3);
@@ -194,6 +221,10 @@ describe('findNearbyRecipients', () => {
 });
 
 describe('createRescue', () => {
+  beforeEach(() => {
+    seedDemoSurplus();
+  });
+
   it('locks allocation and updates status to confirmed rescue', async () => {
     const plan = createRescue('food-001', 'rec-001', 15);
     assert.equal(plan.donationQuantity, 15);
@@ -234,6 +265,10 @@ describe('createRescue', () => {
 });
 
 describe('completeRescue / impact', () => {
+  beforeEach(() => {
+    seedDemoSurplus();
+  });
+
   it('updates meals, kg diverted, and value recovered', () => {
     const plan = createRescue('food-001', 'rec-001', 15);
     const { impactMetrics } = completeRescue(plan.id);
@@ -246,6 +281,10 @@ describe('completeRescue / impact', () => {
 });
 
 describe('n8nService', () => {
+  beforeEach(() => {
+    seedDemoSurplus();
+  });
+
   it('builds a stable rescue.created payload', () => {
     const plan = createRescue('food-001', 'rec-001', 15, {
       now: new Date('2026-08-29T18:00:00'),
@@ -319,6 +358,8 @@ describe('WebMCP registration', () => {
         'getImpactMetrics',
       ]);
       assert.deepEqual(registered, result.tools);
+
+      seedDemoSurplus();
 
       // Invoke recommendAction through the registered execute path.
       const { recommendAction: recommend } = await import(

@@ -4,8 +4,9 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        display: ["Fraunces", "Georgia", "serif"],
-        sans: ['"Nunito Sans"', "Segoe UI", "sans-serif"]
+        display: ["'Orbitron'", "'Share Tech Mono'", "ui-monospace", "monospace"],
+        mono: ["'JetBrains Mono'", "'Share Tech Mono'", "ui-monospace", "monospace"],
+        sans: ["'Rajdhani'", "'Segoe UI'", "sans-serif"]
       },
       colors: {
         border: "hsl(var(--border))",
@@ -40,7 +41,22 @@ export default {
         popover: {
           DEFAULT: "hsl(var(--popover))",
           foreground: "hsl(var(--popover-foreground))"
+        },
+        cyber: {
+          cyan: "#00f0ff",
+          magenta: "#ff0055",
+          yellow: "#f59e0b",
+          green: "#00ff66",
+          dark: "#030712",
+          surface: "#090d16",
+          border: "rgba(0, 240, 255, 0.3)"
         }
+      },
+      boxShadow: {
+        "cyan-glow": "0 0 20px rgba(0, 240, 255, 0.45)",
+        "magenta-glow": "0 0 20px rgba(255, 0, 85, 0.45)",
+        "green-glow": "0 0 20px rgba(0, 255, 102, 0.45)",
+        "hud-card": "inset 0 0 15px rgba(0, 240, 255, 0.08), 0 0 20px rgba(0, 240, 255, 0.15)"
       },
       borderRadius: {
         lg: "var(--radius)",

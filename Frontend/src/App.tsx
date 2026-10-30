@@ -10,6 +10,7 @@ import Login from "@/pages/Login";
 import Matching from "@/pages/Matching";
 import Rescue from "@/pages/Rescue";
 import Signup from "@/pages/Signup";
+import SnakeGame from "@/pages/SnakeGame";
 import Surplus from "@/pages/Surplus";
 
 /**
@@ -42,6 +43,7 @@ export default function App() {
             />
             <Route path="/rescue" element={<Rescue />} />
             <Route path="/impact" element={<Impact />} />
+            <Route path="/arcade" element={<SnakeGame />} />
           </Route>
         </Route>
 

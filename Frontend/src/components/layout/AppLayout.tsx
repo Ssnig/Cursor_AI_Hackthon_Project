@@ -2,9 +2,11 @@ import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
   Activity,
   BarChart3,
+  Bot,
   Box,
   Compass,
   Cpu,
+  Gamepad2,
   LogOut,
   Menu,
   ShieldAlert,
@@ -14,6 +16,7 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import CyberCopilot from "@/components/cyber/CyberCopilot";
 import { useFoodLoop } from "@/context/FoodLoopContext";
 import { cn } from "@/lib/utils";
 import { isAudioMuted, playCyberBlip, toggleAudioMute } from "@/lib/cyberAudio";
@@ -23,7 +26,8 @@ const baseNavItems = [
   { to: "/surplus", label: "BIO-INTAKE", icon: Box, id: "surplus" },
   { to: "/matching", label: "TACTICAL RADAR", icon: Compass, id: "matching" },
   { to: "/rescue", label: "RESCUE PROTOCOL", icon: ShieldAlert, id: "rescue" },
-  { to: "/impact", label: "GLOBAL TELEMETRY", icon: BarChart3, id: "impact" }
+  { to: "/impact", label: "GLOBAL TELEMETRY", icon: BarChart3, id: "impact" },
+  { to: "/arcade", label: "CYBER-SNAKE", icon: Gamepad2, id: "arcade" }
 ] as const;
 
 function Brand({ restaurantName }: { restaurantName?: string }) {
@@ -228,6 +232,9 @@ export default function AppLayout() {
             <Outlet />
           </div>
         </main>
+
+        {/* Global Floating Cyber Copilot & WebMCP Terminal */}
+        <CyberCopilot />
       </div>
     </div>
   );
